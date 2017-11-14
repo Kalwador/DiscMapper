@@ -13,23 +13,23 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FileWalker extends HttpServlet {
 
-    MapDisc md;
+    MapDisc mapDiscUtil;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String startPath = "C:\\Program Files\\Internet Explorer";
+        String startPath = "D:\\test2";
         String normalizedStartPath = Utils.replaceOut(startPath);
-        String path = request.getParameter("path");
-        
+        String requestPath = request.getParameter("path");
+
         /**
-         * Handling wrong url path and lack of url path
-         * Incorrect url path way to start point
+         * Handling wrong url path and lack of url path Incorrect url path way
+         * to start point
          */
-        if (path == null || !path.startsWith(normalizedStartPath) || md == null) {
-            md = new MapDisc();
-            md.map(startPath);
-            path = startPath;
+        if (requestPath == null || !requestPath.startsWith(normalizedStartPath) || mapDiscUtil == null) {
+            mapDiscUtil = new MapDisc();
+            mapDiscUtil.map(startPath);
+            requestPath = startPath;
         }
 
         response.setContentType("text/html;charset=UTF-8");
@@ -54,49 +54,45 @@ public class FileWalker extends HttpServlet {
             out.println("</tr>");
             out.println("</thead>");
             out.println("<tbody>");
-            
-            String normalizedPath = Utils.replaceOut(path);
-            
-            
+
+            String normalizedRequestPath = Utils.replaceOut(requestPath);
+
             /**
              * Step Backward button
              */
             out.println("<tr>");
             out.println("<td><span class=\"glyphicon glyphicon-step-backward\"></span></td>");
-            String backWay = normalizedPath.substring(0, normalizedPath.lastIndexOf("/"));
-            out.println("<td><a href=\"?path=" + backWay + "\">BACK</a></td>");
+            String backButtonPath = normalizedRequestPath.substring(0, normalizedRequestPath.lastIndexOf("/"));
+            out.println("<td><a href=\"?path=" + backButtonPath + "\">BACK</a></td>");
             out.println("</tr>");
 
             /**
              * List of all directories included in actual path
              */
-            String[] tab = normalizedPath.split("/");
-            for (String string : md.getFiles().keySet()) {
-                String[] tab2 = string.split("/");
-                if (tab2.length >= tab.length) {
-                    if ((tab[tab.length - 1].equals(tab2[tab.length - 1])) && (tab.length + 1 == tab2.length)) {
-                        out.println("<tr>");
-                        out.println("<td><span class=\"glyphicon glyphicon-folder-close\"></span></td>");
-                        out.println("<td><a href=\"?path=" + string + "\">" + string.replaceAll("!=!", " ") + "</a></td>");
-                        out.println("</tr>");
-                    }
+            for (String filePath : mapDiscUtil.getFiles().keySet()) {
+//                    if ((requestPathTable[requestPathTable.length - 1].equals(filePathTable[requestPathTable.length - 1])) && (requestPathTable.length + 1 == filePathTable.length)) {
+                if (checkForPathEquality(normalizedRequestPath, filePath)) {
+                    out.println("<tr>");
+                    out.println("<td><span class=\"glyphicon glyphicon-folder-close\"></span></td>");
+                    out.println("<td><a href=\"?path=" + filePath + "\">" + filePath.replaceAll("!=!", " ") + "</a></td>");
+                    out.println("</tr>");
                 }
+
             }
             /**
              * Handling '/' character at the end of url path
              */
-            if (path.endsWith("/")) {
-                path = path.substring(0, path.length() - 1);
-                System.out.println("2. ucinamy:" + path);
+            if (requestPath.endsWith("/")) {
+                requestPath = requestPath.substring(0, requestPath.length() - 1);
             }
 
             /**
              * List of all files included in actual path
              */
-            for (String file : md.getFiles().get(path)) {
+            for (String file : mapDiscUtil.getFiles().get(requestPath)) {
                 out.println("<tr>");
                 out.println("<td><span class=\"glyphicon glyphicon-file\"></span></td>");
-                out.println("<td><a href=DiscMapper/DownloadFile?path=" + path + "/" + file + ">" + file + "</a></td>");
+                out.println("<td><a href=DiscMapper/DownloadFile?path=" + requestPath + "/" + file + ">" + file + "</a></td>");
                 out.println("</tr>");
             }
             out.println("</tbody>");
@@ -105,5 +101,29 @@ public class FileWalker extends HttpServlet {
             out.println("</body>");
             out.println("</html>");
         }
+    }
+
+    private boolean checkForPathEquality(String normalizedRequestPath, String filePath) {
+        String[] requestPathTable = normalizedRequestPath.split("/");
+        String[] filePathTable = filePath.split("/");
+
+        //condition dropping previous directories
+        if (filePathTable.length < requestPathTable.length) {
+            return false;
+        }
+
+        //condition dropping directories further than one
+        if (requestPathTable.length + 1 != filePathTable.length) {
+            return false;
+        }
+
+        if(!requestPathTable[requestPathTable.length - 1].equals(filePathTable[requestPathTable.length - 1])){
+            return false;
+        }
+        //condition dropping directories with diffrent actual names
+        if (!normalizedRequestPath.equals(filePath.substring(0, normalizedRequestPath.length()))) {
+            return false;
+        }
+        return true;
     }
 }
