@@ -70,38 +70,39 @@ public class FileWalker extends HttpServlet {
              * List of all directories included in actual path
              */
             for (String filePath : mapDiscUtil.getFiles().keySet()) {
-//                    if ((requestPathTable[requestPathTable.length - 1].equals(filePathTable[requestPathTable.length - 1])) && (requestPathTable.length + 1 == filePathTable.length)) {
                 if (filterDirectories(normalizedRequestPath, filePath)) {
-                    out.println("<tr>");
-                    out.println("<td><span class=\"glyphicon glyphicon-folder-close\"></span></td>");
-                    out.println("<td><a href=\"?path=" + filePath + "\">" + filePath.replaceAll("!=!", " ") + "</a></td>");
-                    out.println("</tr>");
+                        out.println("<tr>");
+                        out.println("<td><span class=\"glyphicon glyphicon-folder-close\"></span></td>");
+                        out.println("<td><a href=\"?path=" + filePath + "\">" + filePath.replaceAll("!=!", " ") + "</a></td>");
+                        out.println("</tr>");
+                    }
+
+                }
+                /**
+                 * Handling '/' character at the end of url path
+                 */
+                if (requestPath.endsWith("/")) {
+                    requestPath = requestPath.substring(0, requestPath.length() - 1);
                 }
 
+                /**
+                 * List of all files included in actual path
+                 */
+                for (String file : mapDiscUtil.getFiles().get(requestPath)) {
+                    out.println("<tr>");
+                    out.println("<td><span class=\"glyphicon glyphicon-file\"></span></td>");
+                    out.println("<td><a href=DiscMapper/DownloadFile?path=" + requestPath + "/" + file + ">" + file + "</a></td>");
+                    out.println("</tr>");
+                }
+                out.println("</tbody>");
+                out.println("</table>");
+                out.println("</div>");
+                out.println("</body>");
+                out.println("</html>");
             }
-            /**
-             * Handling '/' character at the end of url path
-             */
-            if (requestPath.endsWith("/")) {
-                requestPath = requestPath.substring(0, requestPath.length() - 1);
-            }
-
-            /**
-             * List of all files included in actual path
-             */
-            for (String file : mapDiscUtil.getFiles().get(requestPath)) {
-                out.println("<tr>");
-                out.println("<td><span class=\"glyphicon glyphicon-file\"></span></td>");
-                out.println("<td><a href=DiscMapper/DownloadFile?path=" + requestPath + "/" + file + ">" + file + "</a></td>");
-                out.println("</tr>");
-            }
-            out.println("</tbody>");
-            out.println("</table>");
-            out.println("</div>");
-            out.println("</body>");
-            out.println("</html>");
         }
-    }
+
+    
 
     private boolean filterDirectories(String normalizedRequestPath, String filePath) {
         String[] requestPathTable = normalizedRequestPath.split("/");
@@ -117,7 +118,7 @@ public class FileWalker extends HttpServlet {
             return false;
         }
 
-        if(!requestPathTable[requestPathTable.length - 1].equals(filePathTable[requestPathTable.length - 1])){
+        if (!requestPathTable[requestPathTable.length - 1].equals(filePathTable[requestPathTable.length - 1])) {
             return false;
         }
         //condition dropping directories with diffrent actual names
